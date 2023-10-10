@@ -18,14 +18,21 @@ class CsvExport {
   exportCsv() {
     const lines = this.rows.map((row) =>
       Array.from(row.children)
-        .map((cell) => CsvExport.safeData(cell))
+        .map((cell) => CsvExport.safeData(cell, textRemovalRules))
         .join(",")
     );
     return lines.join("\n");
   }
 
-  static safeData(td) {
+  static safeData(td, textRemovalRules) {
     let data = td.textContent;
+    textRemovalRules.forEach((rule) => {
+      if (rule.type === 1) {
+        data = data.replace(new RegExp(escapeRegExp(rule.text), 'g'), '');
+      } else if (rule.type === 2) {
+        data = data.replace(new RegExp(`${rule.text}.*$`), '');
+      }
+    });
     data = data.replace(/"/g, `""`);
     data = /[",\n"]/.test(data) ? `"${data}"` : data;
     return data;
@@ -37,6 +44,14 @@ const tableElement = document.querySelector(
   "#fattura-elettronica table:nth-child(7)"
 );
 
+// 1: complete, 2: fromItsPosition
+const textRemovalRules = [
+  { type: 1, text: "(AswArtFor)" },
+  { type: 2, text: "Lotto:" },
+];
+function escapeRegExp(string) {
+  return string.replace(/[.*+\-?^${}()|[\]\\]/g, "\\$&");
+}
 
 function download_table_as_csv(table_id, separator = ',') {
   // Select rows from table_id
@@ -46,9 +61,9 @@ function download_table_as_csv(table_id, separator = ',') {
   for (var i = 0; i < rows.length; i++) {
     var row = [], cols = rows[i].querySelectorAll('td, th');
     for (var j = 0; j < cols.length; j++) {
-      // Clean innertext to remove multiple spaces and jumpline (break csv)
-      var data = cols[j].innerText.replace(/(\r\n|\n|\r)/gm, '').replace(/(\s\s)/gm, ' ')
-      data = data.replace(/"/g, '""');
+      // Clean innertext and apply text removal rules
+      var data = cols[j].innerText.replace(/(\r\n|\n|\r)/gm, '').replace(/(\s\s)/gm, ' ');
+      data = CsvExport.safeData({ textContent: data }, textRemovalRules);
       // Push escaped string
       row.push('"' + data + '"');
     }
@@ -70,6 +85,7 @@ function download_table_as_csv(table_id, separator = ',') {
 btnExport.addEventListener("click", () => {
   download_table_as_csv("#fattura-elettronica table:nth-child(7)")
 });
+
 
 function addStyle(styleString) {
   const style = document.createElement('style');
