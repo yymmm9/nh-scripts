@@ -53,7 +53,7 @@ const textRemovalRules = [
   { type: 1, text: "(AswArtFor)" },
   { type: 2, text: "Lotto:" },
   { type: 2, text: "Tipo Dato:" },
-  { extractEAN: true }, // Add this rule to extract EAN
+  { extractEAN: true },
 
 ];
 function escapeRegExp(string) {
