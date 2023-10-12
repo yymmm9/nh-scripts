@@ -31,6 +31,10 @@ class CsvExport {
         data = data.replace(new RegExp(escapeRegExp(rule.text), 'g'), '');
       } else if (rule.type === 2) {
         data = data.replace(new RegExp(`${rule.text}.*$`), '');
+      } else if (rule.extractEAN) {
+        // Extract EAN when the string contains "(EAN)"
+        const matches = data.match(/\b\d{13}\b/);
+        data = matches ? matches[0] : data;
       }
     });
     data = data.replace(/"/g, `""`);
@@ -48,6 +52,9 @@ const tableElement = document.querySelector(
 const textRemovalRules = [
   { type: 1, text: "(AswArtFor)" },
   { type: 2, text: "Lotto:" },
+  { type: 2, text: "Tipo Dato:" },
+  { extractEAN: true }, // Add this rule to extract EAN
+
 ];
 function escapeRegExp(string) {
   return string.replace(/[.*+\-?^${}()|[\]\\]/g, "\\$&");
