@@ -19,26 +19,28 @@ class CsvExport {
     const lines = this.rows.map((row) =>
       Array.from(row.children)
         .map((cell) => CsvExport.safeData(cell, textRemovalRules))
-        .join(",")
+        .join("\t")
     );
     return lines.join("\n");
   }
 
   static safeData(td, textRemovalRules) {
     let data = td.textContent;
+    let regex = /(\d+)\s\(EAN\)/;
+
+    if (regex.test(data)) {
+      data = data.match(regex)[1];
+    }
+
     textRemovalRules.forEach((rule) => {
       if (rule.type === 1) {
         data = data.replace(new RegExp(escapeRegExp(rule.text), 'g'), '');
       } else if (rule.type === 2) {
-        data = data.replace(new RegExp(`${rule.text}.*$`), '');
-      } else if (rule.extractEAN) {
-        // Extract EAN when the string contains "(EAN)"
-        const matches = data.match(/\b\d{13}\b/);
-        data = matches ? matches[0] : data;
+        const flags = rule.caseInsensitive ? 'gi' : 'g';
+        data = data.replace(new RegExp(`${escapeRegExp(rule.text)}.*$`, flags), '');
       }
     });
-    data = data.replace(/"/g, `""`);
-    data = /[",\n"]/.test(data) ? `"${data}"` : data;
+    // data = data.replace(/,/g, ",");
     return data;
   }
 }
@@ -52,7 +54,7 @@ const tableElement = document.querySelector(
 const textRemovalRules = [
   { type: 1, text: "(AswArtFor)" },
   { type: 2, text: "Lotto:" },
-  { type: 2, text: "Tipo Dato:" },
+  { type: 2, text: "Tipo Dato:", caseInsensitive: true },
   { extractEAN: true },
 
 ];
@@ -60,7 +62,7 @@ function escapeRegExp(string) {
   return string.replace(/[.*+\-?^${}()|[\]\\]/g, "\\$&");
 }
 
-function download_table_as_csv(table_id, separator = ',') {
+function download_table_as_csv(table_id) {
   // Select rows from table_id
   var rows = document.querySelectorAll('' + table_id + ' tr');
   // Construct csv
@@ -71,10 +73,14 @@ function download_table_as_csv(table_id, separator = ',') {
       // Clean innertext and apply text removal rules
       var data = cols[j].innerText.replace(/(\r\n|\n|\r)/gm, '').replace(/(\s\s)/gm, ' ');
       data = CsvExport.safeData({ textContent: data }, textRemovalRules);
-      // Push escaped string
-      row.push('"' + data + '"');
+
+      // Escape commas by wrapping the field in double quotes
+      if (data.includes(',') || data.includes('\n')) {
+        data = `"${data.replace(/"/g, '""')}"`;
+      }
+      row.push(data);
     }
-    csv.push(row.join(separator));
+    csv.push(row.join(","));
   }
   var csv_string = csv.join('\n');
   // Download it
