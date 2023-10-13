@@ -26,7 +26,7 @@ class CsvExport {
 
   static safeData(td, textRemovalRules) {
     let data = td.textContent;
-    let regex = /(\d+)\s\(EAN\)/;
+    let regex = /(\d{0,14}[A-Z]?)(?=\s?\(EAN\))/;
 
     if (regex.test(data)) {
       data = data.match(regex)[1];
@@ -55,8 +55,8 @@ const textRemovalRules = [
   { type: 1, text: "(AswArtFor)" },
   { type: 2, text: "Lotto:" },
   { type: 2, text: "Tipo Dato:", caseInsensitive: true },
+  { type: 2, text: "Vs.Ord. O/", caseInsensitive: true },
   { extractEAN: true },
-
 ];
 function escapeRegExp(string) {
   return string.replace(/[.*+\-?^${}()|[\]\\]/g, "\\$&");
@@ -68,19 +68,27 @@ function download_table_as_csv(table_id) {
   // Construct csv
   var csv = [];
   for (var i = 0; i < rows.length; i++) {
-    var row = [], cols = rows[i].querySelectorAll('td, th');
+    var row = [],
+      cols = rows[i].querySelectorAll('td, th');
+    var rowIsEmpty = true; // Flag to check if the row is empty
     for (var j = 0; j < cols.length; j++) {
       // Clean innertext and apply text removal rules
       var data = cols[j].innerText.replace(/(\r\n|\n|\r)/gm, '').replace(/(\s\s)/gm, ' ');
       data = CsvExport.safeData({ textContent: data }, textRemovalRules);
-
       // Escape commas by wrapping the field in double quotes
       if (data.includes(',') || data.includes('\n')) {
         data = `"${data.replace(/"/g, '""')}"`;
       }
       row.push(data);
+      // Check if the cell contains non-whitespace content
+      if (data.trim() !== '') {
+        rowIsEmpty = false;
+      }
     }
-    csv.push(row.join(","));
+
+    if (!rowIsEmpty) {
+      csv.push(row.join(","));
+    }
   }
   var csv_string = csv.join('\n');
   // Download it
@@ -94,6 +102,7 @@ function download_table_as_csv(table_id) {
   link.click();
   document.body.removeChild(link);
 }
+
 
 btnExport.addEventListener("click", () => {
   download_table_as_csv("#fattura-elettronica table:nth-child(7)")
