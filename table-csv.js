@@ -46,9 +46,6 @@ class CsvExport {
 }
 
 const btnExport = document.querySelector("#btnExport");
-const tableElement = document.querySelector(
-  "#fattura-elettronica table:nth-child(7)"
-);
 
 // 1: complete, 2: fromItsPosition
 const textRemovalRules = [
@@ -105,7 +102,22 @@ function download_table_as_csv(table_id) {
 
 
 btnExport.addEventListener("click", () => {
-  download_table_as_csv("#fattura-elettronica table:nth-child(7)")
+  const container = document.getElementById('fattura-elettronica');
+  if (container) {
+    // Get all tables inside the container
+    const tables = container.getElementsByTagName('table');
+
+    // Check if the container has at least the minimum number of tables
+    if (tables.length = 9) {
+      console.log('Container has ' + tables.length + ' tables.');
+      download_table_as_csv("#fattura-elettronica table:nth-child(7)")
+    } else {
+      console.log('Container does not have enough tables.', tables.length);
+      download_table_as_csv("#fattura-elettronica table:nth-child(5)")
+    }
+  } else {
+    console.error('Container not found.');
+  }
 });
 
 
