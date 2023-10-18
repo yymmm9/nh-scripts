@@ -108,12 +108,12 @@ btnExport.addEventListener("click", () => {
     const tables = container.getElementsByTagName('table');
 
     // Check if the container has at least the minimum number of tables
-    if (tables.length = 9) {
+    if (tables.length >= 9) {
       console.log('Container has ' + tables.length + ' tables.');
       download_table_as_csv("#fattura-elettronica table:nth-child(7)")
     } else {
       console.log('Container does not have enough tables.', tables.length);
-      download_table_as_csv("#fattura-elettronica table:nth-child(6)")
+      download_table_as_csv("#fattura-elettronica table:nth-child(5)")
     }
   } else {
     console.error('Container not found.');
