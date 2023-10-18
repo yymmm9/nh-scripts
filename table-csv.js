@@ -113,7 +113,7 @@ btnExport.addEventListener("click", () => {
       download_table_as_csv("#fattura-elettronica table:nth-child(7)")
     } else {
       console.log('Container does not have enough tables.', tables.length);
-      download_table_as_csv("#fattura-elettronica table:nth-child(5)")
+      download_table_as_csv("#fattura-elettronica table:nth-child(6)")
     }
   } else {
     console.error('Container not found.');
