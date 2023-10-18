@@ -89,7 +89,7 @@ function download_table_as_csv(table_id) {
   }
   var csv_string = csv.join('\n');
   // Download it
-  var filename = 'ev6_' + table_id + '_' + new Date().toLocaleDateString() + '.csv';
+  var filename = 'ev7_' + table_id + '_' + new Date().toLocaleDateString() + '.csv';
   var link = document.createElement('a');
   link.style.display = 'none';
   link.setAttribute('target', '_blank');
